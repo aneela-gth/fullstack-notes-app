@@ -1,6 +1,11 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import AllowAny
+from rest_framework.authentication import BasicAuthentication
+
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.db.models import Q
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
@@ -9,7 +14,11 @@ from .models import Note
 from .serializers import NoteSerializer
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class NoteListCreate(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [AllowAny]
+
     def get(self, request):
         search_query = request.GET.get("search", "")
         notes = Note.objects.filter(
@@ -25,10 +34,15 @@ class NoteListCreate(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(csrf_exempt, name="dispatch")
 class NoteDetail(APIView):
+    authentication_classes = [BasicAuthentication]
+    permission_classes = [AllowAny]
+
     def get(self, request, pk):
         note = get_object_or_404(Note, pk=pk)
         serializer = NoteSerializer(note)
@@ -40,12 +54,11 @@ class NoteDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-# ✅ FORCE DOWNLOAD (THIS IS THE KEY)
+@csrf_exempt
 def download_note(request, pk):
     note = get_object_or_404(Note, pk=pk)
-    response = FileResponse(
+    return FileResponse(
         note.file.open(),
         as_attachment=True,
         filename=note.file.name.split("/")[-1]
     )
-    return response
