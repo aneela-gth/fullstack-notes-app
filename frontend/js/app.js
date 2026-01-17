@@ -1,8 +1,8 @@
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-const apiUrl = "https://fullstackprojectnotesapp-4.onrender.com/api/notes/";
-const BASE_URL = "https://fullstackprojectnotesapp-4.onrender.com";
+const apiUrl = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
+const BASE_URL = "https://fullstackprojectnotesapp6.onrender.com";
 
 const notesContainer = document.getElementById("notesContainer");
 const uploadForm = document.getElementById("uploadForm");
