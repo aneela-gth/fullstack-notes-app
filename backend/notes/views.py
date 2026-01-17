@@ -3,6 +3,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny
 from rest_framework.authentication import BasicAuthentication
+from rest_framework.parsers import MultiPartParser, FormParser
 
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -19,11 +20,14 @@ class NoteListCreate(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [AllowAny]
 
+    # 🔥 THIS IS THE FIX
+    parser_classes = (MultiPartParser, FormParser)
+
     def get(self, request):
-        search_query = request.GET.get("search", "")
+        search = request.GET.get("search", "")
         notes = Note.objects.filter(
-            Q(title__icontains=search_query) |
-            Q(description__icontains=search_query)
+            Q(title__icontains=search) |
+            Q(description__icontains=search)
         ).order_by("-uploaded_at")
 
         serializer = NoteSerializer(notes, many=True)
@@ -42,11 +46,6 @@ class NoteListCreate(APIView):
 class NoteDetail(APIView):
     authentication_classes = [BasicAuthentication]
     permission_classes = [AllowAny]
-
-    def get(self, request, pk):
-        note = get_object_or_404(Note, pk=pk)
-        serializer = NoteSerializer(note)
-        return Response(serializer.data)
 
     def delete(self, request, pk):
         note = get_object_or_404(Note, pk=pk)
