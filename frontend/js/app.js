@@ -1,3 +1,6 @@
+
+let ALL_NOTES = [];
+
 document.addEventListener("DOMContentLoaded", () => {
 
 /* ===============================
@@ -40,6 +43,8 @@ const searchInput = document.getElementById("searchInput");
 const uploadSection = document.getElementById("upload");
 const uploadForm = document.getElementById("uploadForm");
 const uploadMessage = document.getElementById("uploadMessage");
+const themeToggle = document.getElementById("themeToggle");
+
 
 /* ===============================
    LOGIN GUARD
@@ -121,16 +126,21 @@ function checkAdmin() {
 /* ===============================
    FETCH NOTES
 ================================ */
+
 async function getNotes() {
   try {
     const res = await fetch(NOTES_API);
-    const notes = await res.json();
-    displayNotes(notes);
+    if (!res.ok) throw new Error();
+
+    ALL_NOTES = await res.json(); // store all notes
+    displayNotes(ALL_NOTES);
+
   } catch {
-    notesContainer.innerHTML = "<p>❌ Error fetching notes</p>";
+    notesContainer.innerHTML =
+      "<p style='color:red;'>❌ Error fetching notes</p>";
   }
 }
-
+t
 /* ===============================
    DISPLAY NOTES (PDF PREVIEW)
 ================================ */
@@ -228,4 +238,32 @@ if (uploadForm) {
     }
   };
 }
+searchInput.oninput = () => {
+  const query = searchInput.value.toLowerCase().trim();
+
+  const filteredNotes = ALL_NOTES.filter(note =>
+    note.title.toLowerCase().includes(query) ||
+    note.description.toLowerCase().includes(query)
+  );
+
+  displayNotes(filteredNotes);
+};
+
+// ===============================
+// THEME TOGGLE (FIXED)
+// ===============================
+themeToggle.onclick = () => {
+  document.body.classList.toggle("dark-mode");
+
+  if (document.body.classList.contains("dark-mode")) {
+    localStorage.setItem("theme", "dark");
+    themeToggle.innerText = "☀️";
+  } else {
+    localStorage.setItem("theme", "light");
+    themeToggle.innerText = "🌙";
+  }
+};
+
+
+
 })
