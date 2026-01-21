@@ -2,7 +2,6 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAdminUser
-from rest_framework.parsers import MultiPartParser, FormParser
 
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
@@ -11,24 +10,11 @@ from django.http import HttpResponseRedirect
 from .models import Note
 from .serializers import NoteSerializer
 
-
 class NoteListCreate(APIView):
-    parser_classes = (MultiPartParser, FormParser)
-
-    def get_permissions(self):
-        # 👑 Only admin can upload
-        if self.request.method == "POST":
-            return [IsAdminUser()]
-        # 👤 Anyone can view
-        return [AllowAny()]
+    permission_classes = [AllowAny]
 
     def get(self, request):
-        search = request.GET.get("search", "")
-        notes = Note.objects.filter(
-            Q(title__icontains=search) |
-            Q(description__icontains=search)
-        ).order_by("-uploaded_at")
-
+        notes = Note.objects.all().order_by("-uploaded_at")
         serializer = NoteSerializer(notes, many=True)
         return Response(serializer.data)
 
@@ -36,9 +22,11 @@ class NoteListCreate(APIView):
         serializer = NoteSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.data, status=201)
 
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=400)
+
+
 
 
 class NoteDetail(APIView):

@@ -53,7 +53,7 @@ switchAuth.onclick = () => {
 };
 
 /* ===============================
-   LOGIN / SIGNUP SUBMIT
+   LOGIN / SIGNUP
 ================================ */
 authBtn.onclick = async () => {
   const username = document.getElementById("username").value.trim();
@@ -91,7 +91,6 @@ authBtn.onclick = async () => {
 
     authContainer.style.display = "none";
     appContainer.style.display = "block";
-
     getNotes();
     checkAdminAccess();
 
@@ -101,63 +100,53 @@ authBtn.onclick = async () => {
 };
 
 /* ===============================
-   AUTO LOGIN
+   AUTO LOGIN (STRICT FIX 🔥)
 ================================ */
 (async function autoLogin() {
   try {
     const res = await fetch(ME_API, { credentials: "include" });
-    if (res.ok) {
-      authContainer.style.display = "none";
-      appContainer.style.display = "block";
-      getNotes();
-      checkAdminAccess();
-    }
-  } catch {}
+
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+
+    // 🔐 MUST HAVE USERNAME
+    if (!data.username) throw new Error();
+
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    getNotes();
+    checkAdminAccess();
+
+  } catch {
+    authContainer.style.display = "block";
+    appContainer.style.display = "none";
+  }
 })();
 
 /* ===============================
-   ADMIN CHECK (🔥 FIXED)
-   Non‑admin → upload section REMOVED
+   ADMIN CHECK
 ================================ */
 async function checkAdminAccess() {
   try {
     const res = await fetch(ME_API, { credentials: "include" });
-
-    if (!res.ok) {
-      if (uploadSection) uploadSection.remove();
-      uploadSection = null;
-      uploadForm = null;
-      return;
-    }
-
     const data = await res.json();
 
-    if (!data.is_admin) {
-      if (uploadSection) uploadSection.remove();
-      uploadSection = null;
+    if (!data.is_admin && uploadSection) {
+      uploadSection.remove();
       uploadForm = null;
     }
-
   } catch {
     if (uploadSection) uploadSection.remove();
-    uploadSection = null;
-    uploadForm = null;
   }
 }
 
 /* ===============================
-   FETCH NOTES (PUBLIC)
+   FETCH NOTES
 ================================ */
 async function getNotes() {
   try {
-    let url = NOTES_API;
-    const search = searchInput.value.trim();
-
-    if (search) {
-      url += `?search=${encodeURIComponent(search)}`;
-    }
-
-    const res = await fetch(url);
+    const res = await fetch(NOTES_API);
     if (!res.ok) throw new Error();
 
     const notes = await res.json();
@@ -175,14 +164,13 @@ async function getNotes() {
 function displayNotes(notes) {
   notesContainer.innerHTML = "";
 
-  if (!notes || notes.length === 0) {
+  if (!notes.length) {
     notesContainer.innerHTML = "<p>No notes available</p>";
     return;
   }
 
   notes.forEach(note => {
-    const fileUrl = note.file;
-    const ext = fileUrl.split(".").pop().toLowerCase();
+    const ext = note.file.split(".").pop().toLowerCase();
 
     const card = document.createElement("div");
     card.className = "note-card";
@@ -193,18 +181,18 @@ function displayNotes(notes) {
       <p>${note.description}</p>
       <div class="card-actions">
         <button class="view-btn">View</button>
-        <a class="download-btn" href="${fileUrl}" target="_blank">Download</a>
+        <a class="download-btn" href="${note.file}" target="_blank">Download</a>
       </div>
     `;
 
     if (ext === "pdf") {
-      renderPdfPreview(fileUrl, `preview-${note.id}`);
+      renderPdfPreview(note.file, `preview-${note.id}`);
     } else {
       document.getElementById(`preview-${note.id}`).innerText = "No preview";
     }
 
     card.querySelector(".view-btn").onclick = () =>
-      window.open(fileUrl, "_blank");
+      window.open(note.file, "_blank");
 
     notesContainer.appendChild(card);
   });
@@ -233,48 +221,43 @@ async function renderPdfPreview(url, id) {
     container.appendChild(canvas);
 
   } catch {
-    const container = document.getElementById(id);
-    if (container) container.innerText = "Preview error";
+    document.getElementById(id).innerText = "Preview error";
   }
 }
 
 /* ===============================
    UPLOAD NOTE (ADMIN ONLY)
-   (safe guard)
+   🔥 URL ONLY (SUPABASE)
 ================================ */
 if (uploadForm) {
   uploadForm.onsubmit = async e => {
     e.preventDefault();
-
     uploadMessage.innerText = "";
 
-    const formData = new FormData();
-    formData.append("title", title.value);
-    formData.append("description", description.value);
-    formData.append("file", file.files[0]);
-
     try {
+      // ⛔ You MUST already upload to Supabase
+      // and get this URL
+      const supabaseFileUrl = uploadedFilePublicUrl;
+
       const res = await fetch(NOTES_API, {
         method: "POST",
-        body: formData,
-        credentials: "include"
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify({
+          title: title.value,
+          description: description.value,
+          file: supabaseFileUrl
+        })
       });
 
-      if (!res.ok) {
-        uploadMessage.innerText = "❌ Upload failed";
-        uploadMessage.style.color = "red";
-        return;
-      }
+      if (!res.ok) throw new Error();
 
       uploadMessage.innerText = "✅ Note uploaded successfully";
-      uploadMessage.style.color = "green";
-
       uploadForm.reset();
       getNotes();
 
     } catch {
-      uploadMessage.innerText = "❌ Server error";
-      uploadMessage.style.color = "red";
+      uploadMessage.innerText = "❌ Upload failed";
     }
   };
 }
