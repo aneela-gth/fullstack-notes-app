@@ -4,7 +4,6 @@
 const NOTES_API = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
 const LOGIN_API = "https://fullstackprojectnotesapp6.onrender.com/api/auth/login/";
 const SIGNUP_API = "https://fullstackprojectnotesapp6.onrender.com/api/auth/signup/";
-const ME_API = "https://fullstackprojectnotesapp6.onrender.com/api/auth/me/";
 
 /* ===============================
    DOM ELEMENTS
@@ -25,7 +24,7 @@ let uploadForm = document.getElementById("uploadForm");
 let uploadMessage = document.getElementById("uploadMessage");
 
 /* ===============================
-   HARD LOGIN GUARD ✅
+   HARD LOGIN GUARD
 ================================ */
 if (!sessionStorage.getItem("loggedIn")) {
   authContainer.style.display = "block";
@@ -55,7 +54,7 @@ switchAuth.onclick = () => {
 };
 
 /* ===============================
-   LOGIN / SIGNUP
+   LOGIN / SIGNUP (FIXED)
 ================================ */
 authBtn.onclick = async () => {
   const username = document.getElementById("username").value.trim();
@@ -63,6 +62,7 @@ authBtn.onclick = async () => {
 
   if (!username || !password) {
     authMsg.innerText = "❌ All fields required";
+    authMsg.style.color = "red";
     return;
   }
 
@@ -70,58 +70,61 @@ authBtn.onclick = async () => {
     const res = await fetch(isLogin ? LOGIN_API : SIGNUP_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ username, password }),
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      authMsg.innerText = data.error || "❌ Authentication failed";
+      authMsg.innerText = data.error || "❌ Something went wrong";
+      authMsg.style.color = "red";
       return;
     }
 
+    // ✅ SIGNUP SUCCESS
     if (!isLogin) {
       authMsg.innerText = "✅ Signup successful. Please login.";
+      authMsg.style.color = "green";
+
       isLogin = true;
       authTitle.innerText = "Login";
       authBtn.innerText = "Login";
+      switchAuth.innerText = "Don’t have an account? Signup";
       return;
     }
 
-    // ✅ IMPORTANT
+    // ✅ LOGIN SUCCESS
     sessionStorage.setItem("loggedIn", "true");
+    sessionStorage.setItem("username", username);
 
     authContainer.style.display = "none";
     appContainer.style.display = "block";
+    authMsg.innerText = "";
 
     getNotes();
     checkAdminAccess();
 
   } catch {
     authMsg.innerText = "❌ Server error";
+    authMsg.style.color = "red";
   }
 };
 
 /* ===============================
-   ADMIN CHECK
+   ADMIN CHECK (NO COOKIES)
 ================================ */
-async function checkAdminAccess() {
-  try {
-    const res = await fetch(ME_API, { credentials: "include" });
-    const data = await res.json();
+function checkAdminAccess() {
+  const adminUsers = ["supraja", "admin"]; // 👈 put admin username here
+  const loggedUser = sessionStorage.getItem("username");
 
-    if (!data.is_admin && uploadSection) {
-      uploadSection.remove();
-      uploadForm = null;
-    }
-  } catch {
-    if (uploadSection) uploadSection.remove();
+  if (!adminUsers.includes(loggedUser) && uploadSection) {
+    uploadSection.remove();
+    uploadForm = null;
   }
 }
 
 /* ===============================
-   FETCH NOTES ✅ (WORKING)
+   FETCH NOTES (WORKING)
 ================================ */
 async function getNotes() {
   try {
@@ -156,8 +159,6 @@ function displayNotes(notes) {
   }
 
   notes.forEach(note => {
-    const ext = note.file.split(".").pop().toLowerCase();
-
     const card = document.createElement("div");
     card.className = "note-card";
 
@@ -172,16 +173,16 @@ function displayNotes(notes) {
 }
 
 /* ===============================
-   UPLOAD NOTE (SAFE GUARD)
+   UPLOAD NOTE (OPTIONAL / SAFE)
 ================================ */
 if (uploadForm) {
   uploadForm.onsubmit = async e => {
     e.preventDefault();
     uploadMessage.innerText = "";
 
-    // 🔴 PREVENT JS CRASH
     if (typeof uploadedFilePublicUrl === "undefined") {
       uploadMessage.innerText = "❌ Supabase upload not configured";
+      uploadMessage.style.color = "red";
       return;
     }
 
@@ -189,7 +190,6 @@ if (uploadForm) {
       const res = await fetch(NOTES_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           title: title.value,
           description: description.value,
@@ -200,11 +200,13 @@ if (uploadForm) {
       if (!res.ok) throw new Error();
 
       uploadMessage.innerText = "✅ Note uploaded";
+      uploadMessage.style.color = "green";
       uploadForm.reset();
       getNotes();
 
     } catch {
       uploadMessage.innerText = "❌ Upload failed";
+      uploadMessage.style.color = "red";
     }
   };
 }
