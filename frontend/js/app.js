@@ -1,3 +1,5 @@
+document.addEventListener("DOMContentLoaded", () => {
+
 /* ===============================
    PDF.js
 ================================ */
@@ -226,3 +228,4 @@ if (uploadForm) {
     }
   };
 }
+})
