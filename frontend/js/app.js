@@ -1,24 +1,41 @@
+// ===============================
+// PDF.js WORKER
+// ===============================
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
+// ===============================
+// API CONFIG (PRODUCTION)
+// ===============================
 const apiUrl = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
 const BASE_URL = "https://fullstackprojectnotesapp6.onrender.com";
 
+// ===============================
+// DOM ELEMENTS
+// ===============================
 const notesContainer = document.getElementById("notesContainer");
 const uploadForm = document.getElementById("uploadForm");
 const uploadMessage = document.getElementById("uploadMessage");
 const searchInput = document.getElementById("searchInput");
 const themeToggle = document.getElementById("themeToggle");
 
+// ===============================
+// THEME TOGGLE
+// ===============================
 themeToggle.onclick = () => {
   document.body.classList.toggle("dark-mode");
 };
 
+// ===============================
+// FETCH NOTES
+// ===============================
 async function getNotes() {
   try {
     let url = apiUrl;
-    if (searchInput.value.trim()) {
-      url += `?search=${encodeURIComponent(searchInput.value)}`;
+    const search = searchInput.value.trim();
+
+    if (search) {
+      url += `?search=${encodeURIComponent(search)}`;
     }
 
     const res = await fetch(url);
@@ -27,14 +44,17 @@ async function getNotes() {
     const notes = await res.json();
     displayNotes(notes);
   } catch {
-    notesContainer.innerHTML = "<p>Error fetching notes</p>";
+    notesContainer.innerHTML = "<p>❌ Error fetching notes</p>";
   }
 }
 
+// ===============================
+// DISPLAY NOTES
+// ===============================
 function displayNotes(notes) {
   notesContainer.innerHTML = "";
 
-  if (!notes.length) {
+  if (!notes || notes.length === 0) {
     notesContainer.innerHTML = "<p>No notes found</p>";
     return;
   }
@@ -48,6 +68,7 @@ function displayNotes(notes) {
 
     const card = document.createElement("div");
     card.className = "note-card";
+
     card.innerHTML = `
       <div class="pdf-preview" id="preview-${note.id}">Loading...</div>
       <h3>${note.title}</h3>
@@ -58,17 +79,23 @@ function displayNotes(notes) {
       </div>
     `;
 
+    // PDF preview
     if (ext === "pdf") {
       renderPdfPreview(viewUrl, `preview-${note.id}`);
     } else {
       document.getElementById(`preview-${note.id}`).innerText = "No preview";
     }
 
-    card.querySelector(".view-btn").onclick = () => window.open(viewUrl, "_blank");
+    card.querySelector(".view-btn").onclick = () =>
+      window.open(viewUrl, "_blank");
+
     notesContainer.appendChild(card);
   });
 }
 
+// ===============================
+// PDF PREVIEW
+// ===============================
 async function renderPdfPreview(url, id) {
   try {
     const pdf = await pdfjsLib.getDocument(url).promise;
@@ -88,12 +115,18 @@ async function renderPdfPreview(url, id) {
     container.innerHTML = "";
     container.appendChild(canvas);
   } catch {
-    document.getElementById(id).innerText = "Preview error";
+    const container = document.getElementById(id);
+    if (container) container.innerText = "Preview error";
   }
 }
 
+// ===============================
+// UPLOAD NOTE (ADMIN ONLY)
+// ===============================
 uploadForm.onsubmit = async e => {
   e.preventDefault();
+
+  uploadMessage.innerText = "";
 
   const formData = new FormData();
   formData.append("title", title.value);
@@ -101,17 +134,61 @@ uploadForm.onsubmit = async e => {
   formData.append("file", file.files[0]);
 
   try {
-    const res = await fetch(apiUrl, { method: "POST", body: formData });
-    if (!res.ok) throw new Error();
+    const res = await fetch(apiUrl, {
+      method: "POST",
+      body: formData,
+    });
 
-    uploadMessage.innerText = "✅ Uploaded";
+    // 🔐 ADMIN‑ONLY HANDLING
+    if (res.status === 403) {
+      uploadMessage.innerText = "❌ Only admin can upload notes";
+      uploadMessage.style.color = "red";
+      return;
+    }
+
+    if (!res.ok) {
+      uploadMessage.innerText = "❌ Upload failed";
+      uploadMessage.style.color = "red";
+      return;
+    }
+
+    uploadMessage.innerText = "✅ Note uploaded successfully";
+    uploadMessage.style.color = "green";
+
     uploadForm.reset();
     getNotes();
   } catch {
-    uploadMessage.innerText = "❌ Upload failed";
+    uploadMessage.innerText = "❌ Server error";
+    uploadMessage.style.color = "red";
   }
 };
 
-searchInput.oninput = () => setTimeout(getNotes, 300);
+// ===============================
+// LIVE SEARCH (DEBOUNCE)
+// ===============================
+let searchTimer;
+searchInput.oninput = () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(getNotes, 300);
+};
 
+// ===============================
+// INITIAL LOAD
+// ===============================
 getNotes();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

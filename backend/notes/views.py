@@ -1,27 +1,26 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
-from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import AllowAny, IsAdminUser
 from rest_framework.parsers import MultiPartParser, FormParser
 
-from django.views.decorators.csrf import csrf_exempt
-from django.utils.decorators import method_decorator
 from django.db.models import Q
-from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from django.http import HttpResponseRedirect
 
 from .models import Note
 from .serializers import NoteSerializer
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class NoteListCreate(APIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [AllowAny]
-
-    # 🔥 THIS IS THE FIX
     parser_classes = (MultiPartParser, FormParser)
+
+    def get_permissions(self):
+        # 👑 Only admin can upload
+        if self.request.method == "POST":
+            return [IsAdminUser()]
+        # 👤 Anyone can view
+        return [AllowAny()]
 
     def get(self, request):
         search = request.GET.get("search", "")
@@ -42,10 +41,8 @@ class NoteListCreate(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-@method_decorator(csrf_exempt, name="dispatch")
 class NoteDetail(APIView):
-    authentication_classes = [BasicAuthentication]
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminUser]  # 👑 only admin can delete
 
     def delete(self, request, pk):
         note = get_object_or_404(Note, pk=pk)
@@ -53,11 +50,10 @@ class NoteDetail(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@csrf_exempt
 def download_note(request, pk):
+    """
+    Supabase files are public URLs.
+    Just redirect the user to the file.
+    """
     note = get_object_or_404(Note, pk=pk)
-    return FileResponse(
-        note.file.open(),
-        as_attachment=True,
-        filename=note.file.name.split("/")[-1]
-    )
+    return HttpResponseRedirect(note.file)

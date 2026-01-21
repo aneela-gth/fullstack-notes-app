@@ -46,6 +46,8 @@ INSTALLED_APPS = [
 
     # Local
     "notes",
+    'accounts',
+
 ]
 
 # --------------------------------------------------
@@ -83,7 +85,7 @@ CORS_EXPOSE_HEADERS = ["Content-Type"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://yatasujana.github.io",
-    "https://fullstackprojectnotesapp-4.onrender.com",
+    "https://fullstackprojectnotesapp6.onrender.com",
 ]
 
 CSRF_COOKIE_SECURE = True
@@ -156,8 +158,7 @@ USE_TZ = True
 STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+
 
 # --------------------------------------------------
 # REST FRAMEWORK
