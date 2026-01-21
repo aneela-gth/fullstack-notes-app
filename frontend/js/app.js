@@ -16,8 +16,6 @@ const ME_API = "https://fullstackprojectnotesapp6.onrender.com/api/auth/me/";
    DOM ELEMENTS
 ================================ */
 const notesContainer = document.getElementById("notesContainer");
-const uploadForm = document.getElementById("uploadForm");
-const uploadMessage = document.getElementById("uploadMessage");
 const searchInput = document.getElementById("searchInput");
 const themeToggle = document.getElementById("themeToggle");
 
@@ -27,7 +25,10 @@ const authBtn = document.getElementById("authBtn");
 const authTitle = document.getElementById("authTitle");
 const authMsg = document.getElementById("authMsg");
 const switchAuth = document.getElementById("switchAuth");
-const uploadSection = document.getElementById("upload");
+
+let uploadSection = document.getElementById("upload");
+let uploadForm = document.getElementById("uploadForm");
+let uploadMessage = document.getElementById("uploadMessage");
 
 /* ===============================
    THEME TOGGLE
@@ -80,7 +81,6 @@ authBtn.onclick = async () => {
       return;
     }
 
-    // Signup → switch to login
     if (!isLogin) {
       authMsg.innerText = "✅ Signup successful. Please login.";
       isLogin = true;
@@ -89,9 +89,9 @@ authBtn.onclick = async () => {
       return;
     }
 
-    // Login success
     authContainer.style.display = "none";
     appContainer.style.display = "block";
+
     getNotes();
     checkAdminAccess();
 
@@ -101,7 +101,7 @@ authBtn.onclick = async () => {
 };
 
 /* ===============================
-   AUTO LOGIN (SESSION CHECK)
+   AUTO LOGIN
 ================================ */
 (async function autoLogin() {
   try {
@@ -116,25 +116,37 @@ authBtn.onclick = async () => {
 })();
 
 /* ===============================
-   ADMIN CHECK
+   ADMIN CHECK (🔥 FIXED)
+   Non‑admin → upload section REMOVED
 ================================ */
 async function checkAdminAccess() {
   try {
     const res = await fetch(ME_API, { credentials: "include" });
+
     if (!res.ok) {
-      uploadSection.style.display = "none";
+      if (uploadSection) uploadSection.remove();
+      uploadSection = null;
+      uploadForm = null;
       return;
     }
 
     const data = await res.json();
-    uploadSection.style.display = data.is_admin ? "block" : "none";
+
+    if (!data.is_admin) {
+      if (uploadSection) uploadSection.remove();
+      uploadSection = null;
+      uploadForm = null;
+    }
+
   } catch {
-    uploadSection.style.display = "none";
+    if (uploadSection) uploadSection.remove();
+    uploadSection = null;
+    uploadForm = null;
   }
 }
 
 /* ===============================
-   FETCH NOTES
+   FETCH NOTES (PUBLIC)
 ================================ */
 async function getNotes() {
   try {
@@ -228,47 +240,44 @@ async function renderPdfPreview(url, id) {
 
 /* ===============================
    UPLOAD NOTE (ADMIN ONLY)
+   (safe guard)
 ================================ */
-uploadForm.onsubmit = async e => {
-  e.preventDefault();
+if (uploadForm) {
+  uploadForm.onsubmit = async e => {
+    e.preventDefault();
 
-  uploadMessage.innerText = "";
+    uploadMessage.innerText = "";
 
-  const formData = new FormData();
-  formData.append("title", title.value);
-  formData.append("description", description.value);
-  formData.append("file", file.files[0]);
+    const formData = new FormData();
+    formData.append("title", title.value);
+    formData.append("description", description.value);
+    formData.append("file", file.files[0]);
 
-  try {
-    const res = await fetch(NOTES_API, {
-      method: "POST",
-      body: formData,
-      credentials: "include"
-    });
+    try {
+      const res = await fetch(NOTES_API, {
+        method: "POST",
+        body: formData,
+        credentials: "include"
+      });
 
-    if (res.status === 403) {
-      uploadMessage.innerText = "❌ Only admin can upload notes";
+      if (!res.ok) {
+        uploadMessage.innerText = "❌ Upload failed";
+        uploadMessage.style.color = "red";
+        return;
+      }
+
+      uploadMessage.innerText = "✅ Note uploaded successfully";
+      uploadMessage.style.color = "green";
+
+      uploadForm.reset();
+      getNotes();
+
+    } catch {
+      uploadMessage.innerText = "❌ Server error";
       uploadMessage.style.color = "red";
-      return;
     }
-
-    if (!res.ok) {
-      uploadMessage.innerText = "❌ Upload failed";
-      uploadMessage.style.color = "red";
-      return;
-    }
-
-    uploadMessage.innerText = "✅ Note uploaded successfully";
-    uploadMessage.style.color = "green";
-
-    uploadForm.reset();
-    getNotes();
-
-  } catch {
-    uploadMessage.innerText = "❌ Server error";
-    uploadMessage.style.color = "red";
-  }
-};
+  };
+}
 
 /* ===============================
    LIVE SEARCH
