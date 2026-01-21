@@ -2,81 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Notes App</title>
 
   <link rel="stylesheet" href="css/style.css" />
 
   <!-- PDF.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-  <!-- =========================
-       AUTH (LOGIN / SIGNUP)
-       SHOWN BY DEFAULT
-  ========================== -->
-  <section id="authContainer" class="auth-container">
-    <h2 id="authTitle">Login</h2>
+<!-- AUTH -->
+<section id="authContainer" class="auth-container">
+  <h2 id="authTitle">Login</h2>
 
-    <input type="text" id="username" placeholder="Username" />
-    <input type="password" id="password" placeholder="Password" />
+  <input id="username" placeholder="Username" />
+  <input id="password" type="password" placeholder="Password" />
 
-    <button id="authBtn">Login</button>
+  <button id="authBtn">Login</button>
+  <p id="switchAuth">Don’t have an account? Signup</p>
+  <p id="authMsg"></p>
+</section>
 
-    <p id="switchAuth">
-      Don’t have an account? Signup
-    </p>
+<!-- APP -->
+<div id="appContainer" style="display:none;">
 
-    <p id="authMsg"></p>
+  <nav>
+    <h1>My Notes App</h1>
+    <div>
+      <input id="searchInput" placeholder="Search notes..." />
+      <button id="themeToggle">🌙</button>
+    </div>
+  </nav>
+
+  <section class="hero">
+    <h1>Upload, search, view and download notes</h1>
   </section>
 
-  <!-- =========================
-       MAIN APP
-       🔒 LOCKED BY DEFAULT
-  ========================== -->
-  <div id="appContainer" style="display:none;">
+  <!-- ADMIN ONLY -->
+  <section id="upload" class="upload-section">
+    <h2>Upload a Note</h2>
+    <form id="uploadForm">
+      <input id="title" placeholder="Title" required />
+      <textarea id="description" placeholder="Description" required></textarea>
+      <input id="file" type="file" accept="application/pdf" required />
+      <button type="submit">Upload</button>
+    </form>
+    <p id="uploadMessage"></p>
+  </section>
 
-    <!-- Navbar -->
-    <nav>
-      <h1>My Notes App</h1>
-      <div>
-        <input type="text" id="searchInput" placeholder="Search notes..." />
-        <button id="themeToggle">🌙</button>
-      </div>
-    </nav>
+  <section class="notes-section">
+    <h2>All Notes</h2>
+    <div id="notesContainer" class="notes-container"></div>
+  </section>
 
-    <!-- Hero -->
-    <section class="hero">
-      <div class="hero-content">
-        <h1>Welcome to My Notes App</h1>
-        <p>Upload, search, view, and download your notes easily!</p>
-      </div>
-    </section>
+</div>
 
-    <!-- Upload (ADMIN ONLY – JS will remove for users) -->
-    <section id="upload" class="upload-section">
-      <h2>Upload a Note</h2>
-
-      <form id="uploadForm">
-        <input type="text" id="title" placeholder="Title" required />
-        <textarea id="description" placeholder="Description" required></textarea>
-        <input type="file" id="file" required />
-        <button type="submit">Upload Note</button>
-      </form>
-
-      <div id="uploadMessage"></div>
-    </section>
-
-    <!-- Notes -->
-    <section class="notes-section">
-      <h2>All Notes</h2>
-      <div id="notesContainer" class="notes-container"></div>
-    </section>
-
-  </div>
-
-  <!-- JS (MUST BE LAST) -->
-  <script src="js/app.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
