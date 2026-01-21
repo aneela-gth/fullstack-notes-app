@@ -1,10 +1,4 @@
 /* ===============================
-   PDF.js WORKER
-================================ */
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
-
-/* ===============================
    API URLs
 ================================ */
 const NOTES_API = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
@@ -29,6 +23,14 @@ const switchAuth = document.getElementById("switchAuth");
 let uploadSection = document.getElementById("upload");
 let uploadForm = document.getElementById("uploadForm");
 let uploadMessage = document.getElementById("uploadMessage");
+
+/* ===============================
+   HARD LOGIN GUARD ✅
+================================ */
+if (!sessionStorage.getItem("loggedIn")) {
+  authContainer.style.display = "block";
+  appContainer.style.display = "none";
+}
 
 /* ===============================
    THEME TOGGLE
@@ -64,10 +66,8 @@ authBtn.onclick = async () => {
     return;
   }
 
-  const url = isLogin ? LOGIN_API : SIGNUP_API;
-
   try {
-    const res = await fetch(url, {
+    const res = await fetch(isLogin ? LOGIN_API : SIGNUP_API, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -89,8 +89,12 @@ authBtn.onclick = async () => {
       return;
     }
 
+    // ✅ IMPORTANT
+    sessionStorage.setItem("loggedIn", "true");
+
     authContainer.style.display = "none";
     appContainer.style.display = "block";
+
     getNotes();
     checkAdminAccess();
 
@@ -98,31 +102,6 @@ authBtn.onclick = async () => {
     authMsg.innerText = "❌ Server error";
   }
 };
-
-/* ===============================
-   AUTO LOGIN (STRICT FIX 🔥)
-================================ */
-(async function autoLogin() {
-  try {
-    const res = await fetch(ME_API, { credentials: "include" });
-
-    if (!res.ok) throw new Error();
-
-    const data = await res.json();
-
-    // 🔐 MUST HAVE USERNAME
-    if (!data.username) throw new Error();
-
-    authContainer.style.display = "none";
-    appContainer.style.display = "block";
-    getNotes();
-    checkAdminAccess();
-
-  } catch {
-    authContainer.style.display = "block";
-    appContainer.style.display = "none";
-  }
-})();
 
 /* ===============================
    ADMIN CHECK
@@ -142,11 +121,18 @@ async function checkAdminAccess() {
 }
 
 /* ===============================
-   FETCH NOTES
+   FETCH NOTES ✅ (WORKING)
 ================================ */
 async function getNotes() {
   try {
-    const res = await fetch(NOTES_API);
+    let url = NOTES_API;
+    const search = searchInput.value.trim();
+
+    if (search) {
+      url += `?search=${encodeURIComponent(search)}`;
+    }
+
+    const res = await fetch(url);
     if (!res.ok) throw new Error();
 
     const notes = await res.json();
@@ -164,7 +150,7 @@ async function getNotes() {
 function displayNotes(notes) {
   notesContainer.innerHTML = "";
 
-  if (!notes.length) {
+  if (!notes || notes.length === 0) {
     notesContainer.innerHTML = "<p>No notes available</p>";
     return;
   }
@@ -176,69 +162,30 @@ function displayNotes(notes) {
     card.className = "note-card";
 
     card.innerHTML = `
-      <div class="pdf-preview" id="preview-${note.id}">Loading...</div>
       <h3>${note.title}</h3>
       <p>${note.description}</p>
-      <div class="card-actions">
-        <button class="view-btn">View</button>
-        <a class="download-btn" href="${note.file}" target="_blank">Download</a>
-      </div>
+      <a href="${note.file}" target="_blank">Download</a>
     `;
-
-    if (ext === "pdf") {
-      renderPdfPreview(note.file, `preview-${note.id}`);
-    } else {
-      document.getElementById(`preview-${note.id}`).innerText = "No preview";
-    }
-
-    card.querySelector(".view-btn").onclick = () =>
-      window.open(note.file, "_blank");
 
     notesContainer.appendChild(card);
   });
 }
 
 /* ===============================
-   PDF PREVIEW
-================================ */
-async function renderPdfPreview(url, id) {
-  try {
-    const pdf = await pdfjsLib.getDocument(url).promise;
-    const page = await pdf.getPage(1);
-    const viewport = page.getViewport({ scale: 0.4 });
-
-    const canvas = document.createElement("canvas");
-    canvas.width = viewport.width;
-    canvas.height = viewport.height;
-
-    await page.render({
-      canvasContext: canvas.getContext("2d"),
-      viewport
-    }).promise;
-
-    const container = document.getElementById(id);
-    container.innerHTML = "";
-    container.appendChild(canvas);
-
-  } catch {
-    document.getElementById(id).innerText = "Preview error";
-  }
-}
-
-/* ===============================
-   UPLOAD NOTE (ADMIN ONLY)
-   🔥 URL ONLY (SUPABASE)
+   UPLOAD NOTE (SAFE GUARD)
 ================================ */
 if (uploadForm) {
   uploadForm.onsubmit = async e => {
     e.preventDefault();
     uploadMessage.innerText = "";
 
-    try {
-      // ⛔ You MUST already upload to Supabase
-      // and get this URL
-      const supabaseFileUrl = uploadedFilePublicUrl;
+    // 🔴 PREVENT JS CRASH
+    if (typeof uploadedFilePublicUrl === "undefined") {
+      uploadMessage.innerText = "❌ Supabase upload not configured";
+      return;
+    }
 
+    try {
       const res = await fetch(NOTES_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -246,13 +193,13 @@ if (uploadForm) {
         body: JSON.stringify({
           title: title.value,
           description: description.value,
-          file: supabaseFileUrl
+          file: uploadedFilePublicUrl
         })
       });
 
       if (!res.ok) throw new Error();
 
-      uploadMessage.innerText = "✅ Note uploaded successfully";
+      uploadMessage.innerText = "✅ Note uploaded";
       uploadForm.reset();
       getNotes();
 
