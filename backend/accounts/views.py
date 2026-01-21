@@ -1,6 +1,3 @@
-from django.shortcuts import render
-
-# Create your views here.
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, login, logout
 from rest_framework.decorators import api_view, permission_classes
@@ -15,7 +12,7 @@ def signup_view(request):
     password = request.data.get("password")
 
     if not username or not password:
-        return Response({"error": "Username and password required"}, status=400)
+        return Response({"error": "All fields required"}, status=400)
 
     if User.objects.filter(username=username).exists():
         return Response({"error": "User already exists"}, status=400)
@@ -29,13 +26,14 @@ def signup_view(request):
 def login_view(request):
     user = authenticate(
         username=request.data.get("username"),
-        password=request.data.get("password")
+        password=request.data.get("password"),
     )
 
     if user is None:
         return Response({"error": "Invalid credentials"}, status=400)
 
     login(request, user)
+
     return Response({
         "message": "Login successful",
         "is_admin": user.is_staff

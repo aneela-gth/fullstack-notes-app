@@ -1,37 +1,144 @@
-// ===============================
-// PDF.js WORKER
-// ===============================
+/* ===============================
+   PDF.js WORKER
+================================ */
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
-// ===============================
-// API CONFIG (PRODUCTION)
-// ===============================
-const apiUrl = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
-const BASE_URL = "https://fullstackprojectnotesapp6.onrender.com";
+/* ===============================
+   API URLs
+================================ */
+const NOTES_API = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
+const LOGIN_API = "https://fullstackprojectnotesapp6.onrender.com/api/auth/login/";
+const SIGNUP_API = "https://fullstackprojectnotesapp6.onrender.com/api/auth/signup/";
+const ME_API = "https://fullstackprojectnotesapp6.onrender.com/api/auth/me/";
 
-// ===============================
-// DOM ELEMENTS
-// ===============================
+/* ===============================
+   DOM ELEMENTS
+================================ */
 const notesContainer = document.getElementById("notesContainer");
 const uploadForm = document.getElementById("uploadForm");
 const uploadMessage = document.getElementById("uploadMessage");
 const searchInput = document.getElementById("searchInput");
 const themeToggle = document.getElementById("themeToggle");
 
-// ===============================
-// THEME TOGGLE
-// ===============================
+const authContainer = document.getElementById("authContainer");
+const appContainer = document.getElementById("appContainer");
+const authBtn = document.getElementById("authBtn");
+const authTitle = document.getElementById("authTitle");
+const authMsg = document.getElementById("authMsg");
+const switchAuth = document.getElementById("switchAuth");
+const uploadSection = document.getElementById("upload");
+
+/* ===============================
+   THEME TOGGLE
+================================ */
 themeToggle.onclick = () => {
   document.body.classList.toggle("dark-mode");
 };
 
-// ===============================
-// FETCH NOTES
-// ===============================
+/* ===============================
+   LOGIN / SIGNUP TOGGLE
+================================ */
+let isLogin = true;
+
+switchAuth.onclick = () => {
+  isLogin = !isLogin;
+  authTitle.innerText = isLogin ? "Login" : "Signup";
+  authBtn.innerText = isLogin ? "Login" : "Signup";
+  switchAuth.innerText = isLogin
+    ? "Don’t have an account? Signup"
+    : "Already have an account? Login";
+  authMsg.innerText = "";
+};
+
+/* ===============================
+   LOGIN / SIGNUP SUBMIT
+================================ */
+authBtn.onclick = async () => {
+  const username = document.getElementById("username").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if (!username || !password) {
+    authMsg.innerText = "❌ All fields required";
+    return;
+  }
+
+  const url = isLogin ? LOGIN_API : SIGNUP_API;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ username, password }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      authMsg.innerText = data.error || "❌ Authentication failed";
+      return;
+    }
+
+    // Signup → switch to login
+    if (!isLogin) {
+      authMsg.innerText = "✅ Signup successful. Please login.";
+      isLogin = true;
+      authTitle.innerText = "Login";
+      authBtn.innerText = "Login";
+      return;
+    }
+
+    // Login success
+    authContainer.style.display = "none";
+    appContainer.style.display = "block";
+    getNotes();
+    checkAdminAccess();
+
+  } catch {
+    authMsg.innerText = "❌ Server error";
+  }
+};
+
+/* ===============================
+   AUTO LOGIN (SESSION CHECK)
+================================ */
+(async function autoLogin() {
+  try {
+    const res = await fetch(ME_API, { credentials: "include" });
+    if (res.ok) {
+      authContainer.style.display = "none";
+      appContainer.style.display = "block";
+      getNotes();
+      checkAdminAccess();
+    }
+  } catch {}
+})();
+
+/* ===============================
+   ADMIN CHECK
+================================ */
+async function checkAdminAccess() {
+  try {
+    const res = await fetch(ME_API, { credentials: "include" });
+    if (!res.ok) {
+      uploadSection.style.display = "none";
+      return;
+    }
+
+    const data = await res.json();
+    uploadSection.style.display = data.is_admin ? "block" : "none";
+  } catch {
+    uploadSection.style.display = "none";
+  }
+}
+
+/* ===============================
+   FETCH NOTES
+================================ */
 async function getNotes() {
   try {
-    let url = apiUrl;
+    let url = NOTES_API;
     const search = searchInput.value.trim();
 
     if (search) {
@@ -39,32 +146,31 @@ async function getNotes() {
     }
 
     const res = await fetch(url);
-    if (!res.ok) throw new Error("Fetch failed");
+    if (!res.ok) throw new Error();
 
     const notes = await res.json();
     displayNotes(notes);
+
   } catch {
-    notesContainer.innerHTML = "<p>❌ Error fetching notes</p>";
+    notesContainer.innerHTML =
+      "<p style='color:red;'>❌ Error fetching notes</p>";
   }
 }
 
-// ===============================
-// DISPLAY NOTES
-// ===============================
+/* ===============================
+   DISPLAY NOTES
+================================ */
 function displayNotes(notes) {
   notesContainer.innerHTML = "";
 
   if (!notes || notes.length === 0) {
-    notesContainer.innerHTML = "<p>No notes found</p>";
+    notesContainer.innerHTML = "<p>No notes available</p>";
     return;
   }
 
   notes.forEach(note => {
-    const viewUrl = note.file.startsWith("http")
-      ? note.file
-      : BASE_URL + note.file;
-
-    const ext = viewUrl.split(".").pop().toLowerCase();
+    const fileUrl = note.file;
+    const ext = fileUrl.split(".").pop().toLowerCase();
 
     const card = document.createElement("div");
     card.className = "note-card";
@@ -75,27 +181,26 @@ function displayNotes(notes) {
       <p>${note.description}</p>
       <div class="card-actions">
         <button class="view-btn">View</button>
-        <a class="download-btn" href="${apiUrl}${note.id}/download/">Download</a>
+        <a class="download-btn" href="${fileUrl}" target="_blank">Download</a>
       </div>
     `;
 
-    // PDF preview
     if (ext === "pdf") {
-      renderPdfPreview(viewUrl, `preview-${note.id}`);
+      renderPdfPreview(fileUrl, `preview-${note.id}`);
     } else {
       document.getElementById(`preview-${note.id}`).innerText = "No preview";
     }
 
     card.querySelector(".view-btn").onclick = () =>
-      window.open(viewUrl, "_blank");
+      window.open(fileUrl, "_blank");
 
     notesContainer.appendChild(card);
   });
 }
 
-// ===============================
-// PDF PREVIEW
-// ===============================
+/* ===============================
+   PDF PREVIEW
+================================ */
 async function renderPdfPreview(url, id) {
   try {
     const pdf = await pdfjsLib.getDocument(url).promise;
@@ -108,21 +213,22 @@ async function renderPdfPreview(url, id) {
 
     await page.render({
       canvasContext: canvas.getContext("2d"),
-      viewport,
+      viewport
     }).promise;
 
     const container = document.getElementById(id);
     container.innerHTML = "";
     container.appendChild(canvas);
+
   } catch {
     const container = document.getElementById(id);
     if (container) container.innerText = "Preview error";
   }
 }
 
-// ===============================
-// UPLOAD NOTE (ADMIN ONLY)
-// ===============================
+/* ===============================
+   UPLOAD NOTE (ADMIN ONLY)
+================================ */
 uploadForm.onsubmit = async e => {
   e.preventDefault();
 
@@ -134,12 +240,12 @@ uploadForm.onsubmit = async e => {
   formData.append("file", file.files[0]);
 
   try {
-    const res = await fetch(apiUrl, {
+    const res = await fetch(NOTES_API, {
       method: "POST",
       body: formData,
+      credentials: "include"
     });
 
-    // 🔐 ADMIN‑ONLY HANDLING
     if (res.status === 403) {
       uploadMessage.innerText = "❌ Only admin can upload notes";
       uploadMessage.style.color = "red";
@@ -157,38 +263,18 @@ uploadForm.onsubmit = async e => {
 
     uploadForm.reset();
     getNotes();
+
   } catch {
     uploadMessage.innerText = "❌ Server error";
     uploadMessage.style.color = "red";
   }
 };
 
-// ===============================
-// LIVE SEARCH (DEBOUNCE)
-// ===============================
+/* ===============================
+   LIVE SEARCH
+================================ */
 let searchTimer;
 searchInput.oninput = () => {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(getNotes, 300);
 };
-
-// ===============================
-// INITIAL LOAD
-// ===============================
-getNotes();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

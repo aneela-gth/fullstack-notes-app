@@ -346,5 +346,158 @@ a:hover {
 
 
 
+/* ===============================
+   AUTH CONTAINER (LOGIN / SIGNUP)
+================================ */
+
+#authContainer {
+  max-width: 420px;
+  margin: 80px auto;
+  padding: 32px 28px;
+  background: linear-gradient(
+    180deg,
+    #ffffff,
+    #f8fafc
+  );
+  border-radius: 20px;
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.08),
+    0 8px 16px rgba(99, 102, 241, 0.15);
+  text-align: center;
+  animation: fadeIn 0.6s ease;
+}
+
+/* Title */
+#authContainer h2 {
+  font-size: 26px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #4f46e5;
+}
+
+/* Inputs */
+#authContainer input {
+  width: 100%;
+  padding: 12px 14px;
+  margin: 10px 0;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+#authContainer input:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Button */
+#authBtn {
+  width: 100%;
+  margin-top: 14px;
+  padding: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  border-radius: 999px;
+  background: linear-gradient(
+    135deg,
+    #6366f1,
+    #22c55e
+  );
+  color: white;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(99, 102, 241, 0.45);
+}
+
+#authBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(99, 102, 241, 0.6);
+}
+
+/* Switch login/signup */
+#switchAuth {
+  margin-top: 14px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #6366f1;
+  cursor: pointer;
+}
+
+#switchAuth:hover {
+  text-decoration: underline;
+}
+
+/* Message */
+#authMsg {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* ===============================
+   DARK MODE SUPPORT
+================================ */
+
+body.dark-mode #authContainer {
+  background: linear-gradient(
+    180deg,
+    #1e293b,
+    #0f172a
+  );
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.6);
+}
+
+body.dark-mode #authContainer h2 {
+  color: #818cf8;
+}
+
+body.dark-mode #authContainer input {
+  background: #020617;
+  color: #e5e7eb;
+  border: 1px solid #334155;
+}
+
+body.dark-mode #authContainer input:focus {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.25);
+}
+
+body.dark-mode #switchAuth {
+  color: #a5b4fc;
+}
+
+/* ===============================
+   ANIMATION
+================================ */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===============================
+   RESPONSIVE
+================================ */
+
+@media (max-width: 480px) {
+  #authContainer {
+    margin: 40px 16px;
+    padding: 26px 20px;
+  }
+
+  #authContainer h2 {
+    font-size: 22px;
+  }
+}
+
 
 

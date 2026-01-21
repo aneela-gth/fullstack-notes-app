@@ -4,51 +4,78 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>My Notes App</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
+  <link rel="stylesheet" href="css/style.css">
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 </head>
 <body>
 
-  <!-- Navbar -->
-  <nav>
-    <h1>My Notes App</h1>
-    <div>
-      <input type="text" id="searchInput" placeholder="Search notes...">
-      <button id="themeToggle">🌙</button>
-    </div>
-  </nav>
+  <!-- =========================
+       AUTH (LOGIN / SIGNUP)
+  ========================== -->
+  <section id="authContainer" class="upload-section">
+    <h2 id="authTitle">Login</h2>
 
-  <!-- Hero Section -->
-  <section class="hero">
-    <div class="hero-content">
-      <h1>Welcome to My Notes App</h1>
-      <p>Upload, search, view, and download your notes easily!</p>
-      <a href="#upload" class="btn-gradient">Get Started</a>
-    </div>
-  </section>
-  
+    <input type="text" id="username" placeholder="Username" />
+    <input type="password" id="password" placeholder="Password" />
 
-  <!-- Upload Form -->
-  <section id="upload" class="upload-section">
-    <h2>Upload a Note</h2>
-    <form id="uploadForm">
-      <input type="text" id="title" placeholder="Title" required>
-      <textarea id="description" placeholder="Description" required></textarea>
-      <input type="file" id="file" required>
-      <button type="submit" class="btn-gradient">Upload Note</button>
-    </form>
-    <div id="uploadMessage"></div>
+    <button id="authBtn" class="btn-gradient">Login</button>
+
+    <p id="switchAuth" style="cursor:pointer;color:#6366f1;margin-top:10px;">
+      Don’t have an account? Signup
+    </p>
+
+    <p id="authMsg" style="margin-top:10px;"></p>
   </section>
 
-  <!-- Notes Display Section -->
-  <section class="notes-section">
-    <h2>All Notes</h2>
-    <div id="notesContainer" class="notes-container">
-      <!-- Notes cards will appear here -->
-    </div>
-  </section>
+  <!-- =========================
+       MAIN APP (HIDDEN UNTIL LOGIN)
+  ========================== -->
+  <div id="appContainer" style="display:none;">
 
+    <!-- Navbar -->
+    <nav>
+      <h1>My Notes App</h1>
+      <div>
+        <input type="text" id="searchInput" placeholder="Search notes...">
+        <button id="themeToggle">🌙</button>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Welcome to My Notes App</h1>
+        <p>Upload, search, view, and download your notes easily!</p>
+        <a href="#upload" class="btn-gradient">Get Started</a>
+      </div>
+    </section>
+
+    <!-- Upload Form (ADMIN ONLY – hidden via JS) -->
+    <section id="upload" class="upload-section">
+      <h2>Upload a Note</h2>
+
+      <form id="uploadForm">
+        <input type="text" id="title" placeholder="Title" required>
+        <textarea id="description" placeholder="Description" required></textarea>
+        <input type="file" id="file" required>
+        <button type="submit" class="btn-gradient">Upload Note</button>
+      </form>
+
+      <div id="uploadMessage"></div>
+    </section>
+
+    <!-- Notes Display Section -->
+    <section class="notes-section">
+      <h2>All Notes</h2>
+      <div id="notesContainer" class="notes-container"></div>
+    </section>
+
+  </div>
+
+  <!-- JS -->
   <script src="js/app.js"></script>
 </body>
 </html>
