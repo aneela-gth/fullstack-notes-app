@@ -140,7 +140,7 @@ async function getNotes() {
       "<p style='color:red;'>❌ Error fetching notes</p>";
   }
 }
-t
+
 /* ===============================
    DISPLAY NOTES (PDF PREVIEW)
 ================================ */
@@ -249,21 +249,47 @@ searchInput.oninput = () => {
   displayNotes(filteredNotes);
 };
 
-// ===============================
-// THEME TOGGLE (FIXED)
-// ===============================
-themeToggle.onclick = () => {
-  document.body.classList.toggle("dark-mode");
+/* ===============================
+     DARK / LIGHT MODE
+  ================================ */
+  if (themeToggle) {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.body.classList.add("dark-mode");
+      themeToggle.textContent = "☀️";
+    }
 
-  if (document.body.classList.contains("dark-mode")) {
-    localStorage.setItem("theme", "dark");
-    themeToggle.innerText = "☀️";
-  } else {
-    localStorage.setItem("theme", "light");
-    themeToggle.innerText = "🌙";
+    themeToggle.onclick = () => {
+      document.body.classList.toggle("dark-mode");
+      const isDark = document.body.classList.contains("dark-mode");
+      localStorage.setItem("theme", isDark ? "dark" : "light");
+      themeToggle.textContent = isDark ? "☀️" : "🌙";
+    };
   }
-};
+
+  
+ /* ===============================
+   SEARCH NOTES BY TITLE
+================================ */
+searchInput.addEventListener("input", () => {
+  const query = searchInput.value.toLowerCase().trim();
+
+  // If search box empty → show all notes
+  if (!query) {
+    displayNotes(ALL_NOTES);
+    return;
+  }
+
+  // Filter by TITLE only
+  const filteredNotes = ALL_NOTES.filter(note =>
+    note.title.toLowerCase().includes(query)
+  );
+
+  displayNotes(filteredNotes);
+});
+ 
+});
 
 
 
-})
+
