@@ -46,7 +46,8 @@ INSTALLED_APPS = [
 
     # Local
     "notes",
-    'accounts',
+    "accounts"
+    
 
 ]
 
