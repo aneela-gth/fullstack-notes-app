@@ -152,20 +152,57 @@ function displayNotes(notes) {
     card.className = "note-card";
 
     card.innerHTML = `
-      <div class="pdf-preview" id="pdf-${note.id}">Loading...</div>
-      <h3>${note.title}</h3>
-      <p>${note.description}</p>
-      <div class="card-actions">
-        <button class="view-btn">View</button>
-        <a class="download-btn" href="${note.file}" target="_blank">Download</a>
-      </div>
-    `;
+    <div class="pdf-preview" id="pdf-${note.id}">
+      <span class="file-badge">FILE</span>
+    </div>
+    <h3>${note.title}</h3>
+    <p>${note.description}</p>
+    <div class="card-actions">
+      <button class="view-btn">View</button>
+      <a class="download-btn" href="${note.file}" target="_blank">Download</a>
+    </div>
+  `;
+
 
     card.querySelector(".view-btn").onclick = () =>
       window.open(note.file, "_blank");
 
-    notesContainer.appendChild(card);
+    // 👇 PASTE CODE HERE
+    const preview = card.querySelector(".pdf-preview");
+    const badge = card.querySelector(".file-badge");
+
+    const fileUrl = note.file.toLowerCase();
+
+  if (fileUrl.endsWith(".pdf")) {
+    badge.textContent = "PDF";
+    badge.className = "file-badge pdf-badge";
+
     renderPdfPreview(note.file, `pdf-${note.id}`);
+
+    setTimeout(() => {
+      preview.prepend(badge);
+    }, 0);
+
+} else if (fileUrl.endsWith(".png") || fileUrl.endsWith(".jpg") || fileUrl.endsWith(".jpeg")) {
+  badge.textContent = "IMAGE";
+  badge.className = "file-badge image-badge";
+
+  preview.innerHTML += `
+    <img src="${note.file}" class="image-preview" />
+  `;
+
+} else if (fileUrl.endsWith(".docx")) {
+  badge.textContent = "DOCX";
+  badge.className = "file-badge docx-badge";
+
+  preview.innerHTML = `
+    <div class="docx-preview">
+      📄 Word Document
+    </div>
+  `;
+}
+
+    notesContainer.appendChild(card);
   });
 }
 
