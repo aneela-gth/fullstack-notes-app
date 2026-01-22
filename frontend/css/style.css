@@ -85,23 +85,11 @@ nav button {
 .hero h1 {
   font-size: 42px;
   margin-bottom: 10px;
-  letter-spacing: -1px;
 }
 
 .hero p {
   font-size: 18px;
   opacity: 0.9;
-}
-
-.btn-gradient {
-  display: inline-block;
-  margin-top: 20px;
-  padding: 12px 26px;
-  border-radius: 999px;
-  background: white;
-  color: #6366f1;
-  font-weight: 600;
-  text-decoration: none;
 }
 
 /* ===============================
@@ -222,10 +210,12 @@ nav button {
   padding: 18px;
   box-shadow: 0 20px 40px rgba(0,0,0,0.15);
   position: relative;
+  border: 2px solid transparent;
 }
 
 .note-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-6px);
+  border-color: #ffffff;
 }
 
 .note-card h3 {
@@ -239,7 +229,7 @@ nav button {
 }
 
 /* ===============================
-   PDF PREVIEW
+   PREVIEW
 ================================ */
 .pdf-preview {
   height: 170px;
@@ -250,11 +240,28 @@ nav button {
   justify-content: center;
   overflow: hidden;
   margin-bottom: 12px;
+  position: relative;
 }
 
-.pdf-preview canvas {
+.pdf-preview canvas,
+.image-preview {
   max-width: 100%;
   max-height: 100%;
+}
+
+/* ===============================
+   DOCX PREVIEW
+================================ */
+.docx-preview {
+  width: 100%;
+  height: 100%;
+  background: #f1f5f9;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  border-radius: 16px;
 }
 
 /* ===============================
@@ -263,7 +270,6 @@ nav button {
 .card-actions {
   display: flex;
   gap: 10px;
-  margin-top: 12px;
 }
 
 .view-btn {
@@ -272,7 +278,6 @@ nav button {
   padding: 8px;
   border-radius: 10px;
   border: none;
-  cursor: pointer;
 }
 
 .download-btn {
@@ -281,8 +286,26 @@ nav button {
   padding: 8px;
   border-radius: 10px;
   text-decoration: none;
-  text-align: center;
 }
+
+/* ===============================
+   FILE TYPE BADGES
+================================ */
+.file-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 999px;
+  color: white;
+  z-index: 5;
+}
+
+.pdf-badge { background: #ef4444; }
+.image-badge { background: #22c55e; }
+.docx-badge { background: #2563eb; }
 
 /* ===============================
    DARK MODE
@@ -310,116 +333,111 @@ body.dark-mode .pdf-preview {
 }
 
 /* ===============================
-   RESPONSIVE
+   TABLET (768px – 1024px)
+================================ */
+@media (max-width: 1024px) {
+  .hero h1 {
+    font-size: 34px;
+  }
+
+  .notes-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  nav input {
+    width: 200px;
+  }
+
+  #authContainer {
+    margin: 60px auto;
+  }
+}
+
+/* ===============================
+   MOBILE (≤ 768px)
 ================================ */
 @media (max-width: 768px) {
+
+  body {
+    background: #f1f5f9;
+  }
+
   nav {
     flex-direction: column;
     gap: 10px;
-    height: auto;
     padding: 12px;
+    position: static;
   }
 
   nav input {
     width: 100%;
   }
 
+  .hero {
+    padding: 20px 14px;
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   .hero h1 {
-    font-size: 30px;
+    font-size: 24px;
+  }
+
+  .hero p {
+    font-size: 14px;
+  }
+
+  #authContainer,
+  .upload-section {
+    margin: 16px;
+    padding: 16px;
+  }
+
+  .notes-section {
+    margin: 20px auto;
+    padding: 0 12px;
   }
 
   .notes-container {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .note-card {
+    padding: 14px;
+  }
+
+  .pdf-preview {
+    height: 140px;
+  }
+
+  .view-btn,
+  .download-btn {
+    font-size: 12px;
+  }
+
+  .file-badge {
+    font-size: 10px;
+  }
+
+  .note-card:hover {
+    transform: none;
   }
 }
 
 /* ===============================
-   NOTE CARD HOVER BORDER
+   EXTRA SMALL (≤ 480px)
 ================================ */
-.note-card {
-  border: 2px solid transparent;   /* important for smooth effect */
-  transition: 
-    transform 0.25s ease,
-    box-shadow 0.25s ease,
-    border-color 0.25s ease;
-}
+@media (max-width: 480px) {
+  .hero h1 {
+    font-size: 22px;
+  }
 
-.note-card:hover {
-  border-color: #ffffff;           /* white border */
-  box-shadow: 0 0 0 2px rgba(255,255,255,0.15),
-              0 20px 40px rgba(0,0,0,0.25);
-}
+  .pdf-preview {
+    height: 130px;
+  }
 
-
-.note-card:hover {
-  border-color: #ffffff;
-  box-shadow:
-    0 0 0 1px rgba(255,255,255,0.8),
-    0 0 20px rgba(255,255,255,0.25),
-    0 20px 40px rgba(0,0,0,0.3);
-}
-
-.hero-title {
-  font-size: 38px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  justify-content: center;
-}
-
-.hero-title .icon {
-  display: inline-block;
-  animation: float 2.5s ease-in-out infinite;
-}
-
-@keyframes float {
-  0%   { transform: translateY(0); }
-  50%  { transform: translateY(-6px); }
-  100% { transform: translateY(0); }
-}
-
-/* ===============================
-   FILE TYPE BADGES
-================================ */
-.file-badge {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 4px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  border-radius: 999px;
-  color: white;
-  z-index: 2;
-}
-
-/* PDF badge */
-.pdf-badge {
-  background: #ef4444; /* red */
-}
-
-/* Image badge */
-.image-badge {
-  background: #22c55e; /* green */
-}
-
-/* Make preview relative */
-.pdf-preview {
-  position: relative;
-}
-.docx-badge {
-  background: #2563eb; /* blue */
-}
-
-.docx-preview {
-  width: 100%;
-  height: 100%;
-  background: #f1f5f9;
-  color: #1e293b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  border-radius: 16px;
+  #authContainer h2 {
+    font-size: 20px;
+  }
 }
