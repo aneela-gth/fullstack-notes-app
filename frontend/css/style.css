@@ -441,3 +441,36 @@ body.dark-mode .pdf-preview {
     font-size: 20px;
   }
 }
+
+
+/* ===============================
+   LOADING SPINNER (LOGIN/SIGNUP)
+================================ */
+.loading-box {
+  margin-top: 14px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 14px;
+  color: #4f46e5;
+}
+
+.spinner {
+  width: 34px;
+  height: 34px;
+  border: 4px solid rgba(79, 70, 229, 0.25);
+  border-top: 4px solid #4f46e5;
+  border-radius: 50%;
+  margin: 0 auto 10px auto;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* optional: disabled button style */
+#authBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}

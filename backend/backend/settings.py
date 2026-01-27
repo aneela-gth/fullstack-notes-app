@@ -69,6 +69,10 @@ MIDDLEWARE = [
 # --------------------------------------------------
 # CORS / CSRF
 # --------------------------------------------------
+CORS_ALLOWED_ORIGINS = [
+    "https://sujanayata.github.io",
+]
+
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
