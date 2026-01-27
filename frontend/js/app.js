@@ -26,6 +26,20 @@ document.addEventListener("DOMContentLoaded", () => {
     "https://fullstackprojectnotesapp6.onrender.com/api/auth/signup/";
 
   /* ===============================
+     HELPER: FETCH WITH TIMEOUT ✅
+  ================================ */
+  async function fetchWithTimeout(url, options = {}, timeout = 25000) {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), timeout);
+
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(id);
+    }
+  }
+
+  /* ===============================
      DOM
   ================================ */
   const authContainer = document.getElementById("authContainer");
@@ -73,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ===============================
-     LOGIN / SIGNUP (WITH LOADER)
+     LOGIN / SIGNUP (WITH LOADER + TIMEOUT)
   ================================ */
   authBtn.onclick = async () => {
     const username = document.getElementById("username").value.trim();
@@ -85,12 +99,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      // ✅ show loader
       if (loadingBox) loadingBox.style.display = "block";
       authBtn.disabled = true;
       authBtn.innerText = "Please wait...";
 
-      const res = await fetch(isLogin ? LOGIN_API : SIGNUP_API, {
+      const res = await fetchWithTimeout(isLogin ? LOGIN_API : SIGNUP_API, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -103,7 +116,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // signup success
       if (!isLogin) {
         authMsg.innerText = "✅ Signup successful. Please login.";
         isLogin = true;
@@ -112,7 +124,6 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // login success
       sessionStorage.setItem("loggedIn", "true");
       sessionStorage.setItem("username", username);
 
@@ -122,10 +133,13 @@ document.addEventListener("DOMContentLoaded", () => {
       checkAdmin();
       getNotes();
     } catch (err) {
-      authMsg.innerText =
-        "⏳ Server is waking up... wait 20-30 sec and try again.";
+      if (err.name === "AbortError") {
+        authMsg.innerText =
+          "⏳ Server is waking up... wait 20s and try again.";
+      } else {
+        authMsg.innerText = "❌ Network/CORS issue. Please try again.";
+      }
     } finally {
-      // ✅ hide loader
       if (loadingBox) loadingBox.style.display = "none";
       authBtn.disabled = false;
       authBtn.innerText = isLogin ? "Login" : "Signup";
@@ -149,16 +163,17 @@ document.addEventListener("DOMContentLoaded", () => {
   ================================ */
   async function getNotes() {
     try {
-      notesContainer.innerHTML = "<p>⏳ Loading notes...</p>";
+      notesContainer.innerHTML =
+        "<p style='text-align:center;'>⏳ Loading notes...</p>";
 
-      const res = await fetch(NOTES_API);
+      const res = await fetchWithTimeout(NOTES_API, {}, 25000);
       if (!res.ok) throw new Error("Notes fetch failed");
 
       ALL_NOTES = await res.json();
       displayNotes(ALL_NOTES);
     } catch (err) {
       notesContainer.innerHTML =
-        "<p style='color:red;'>❌ Error fetching notes</p>";
+        "<p style='color:red;text-align:center;'>❌ Error fetching notes</p>";
     }
   }
 
@@ -182,10 +197,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
         <div class="card-actions">
           <button class="view-btn">View</button>
-          <a class="download-btn" href="${note.file}" target="_blank">Download</a>
+          <a class="download-btn" href="${note.file}?download=1" download>Download</a>
         </div>
       `;
 
+      // ✅ View button (open)
       card.querySelector(".view-btn").onclick = () =>
         window.open(note.file, "_blank");
 
@@ -199,38 +215,28 @@ document.addEventListener("DOMContentLoaded", () => {
         badge.className = "file-badge pdf-badge";
 
         renderPdfPreview(note.file, `pdf-${note.id}`).then(() => {
-          // re-add badge after pdf renders
           preview.prepend(badge);
         });
       }
-
       // ✅ IMAGE
       else if (
         fileUrl.endsWith(".png") ||
         fileUrl.endsWith(".jpg") ||
         fileUrl.endsWith(".jpeg")
       ) {
-        badge.textContent = "IMAGE";
-        badge.className = "file-badge image-badge";
-
         preview.innerHTML = `
           <span class="file-badge image-badge">IMAGE</span>
           <img src="${note.file}" alt="Note Image" class="image-preview" />
         `;
       }
-
       // ✅ DOCX
       else if (fileUrl.endsWith(".docx")) {
-        badge.textContent = "DOCX";
-        badge.className = "file-badge docx-badge";
-
         preview.innerHTML = `
           <span class="file-badge docx-badge">DOCX</span>
           <div class="docx-preview">📄 Word Document</div>
         `;
       }
-
-      // ✅ Other files
+      // ✅ OTHER
       else {
         preview.innerHTML = `
           <span class="file-badge docx-badge">FILE</span>
@@ -292,12 +298,15 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         uploadMessage.innerText = "⏳ Uploading...";
 
-        const { error } = await supabase.storage.from("notes").upload(fileName, file);
+        const { error } = await supabase.storage
+          .from("notes")
+          .upload(fileName, file);
+
         if (error) throw error;
 
         const { data } = supabase.storage.from("notes").getPublicUrl(fileName);
 
-        const res = await fetch(NOTES_API, {
+        const res = await fetchWithTimeout(NOTES_API, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -319,7 +328,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ===============================
-     SEARCH (ONLY ONE LISTENER ✅)
+     SEARCH (ONE LISTENER)
   ================================ */
   if (searchInput) {
     searchInput.addEventListener("input", () => {
