@@ -71,24 +71,11 @@ MIDDLEWARE = [
 # --------------------------------------------------
 CORS_ALLOWED_ORIGINS = [
     "https://sujanayata.github.io",
-    "https://fullstackprojectnotesapp6.onrender.com",
 ]
-
-
-CORS_URLS_REGEX = r"^/api/.*$"
 
 
 CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
-
-CORS_ALLOW_METHODS = [
-    "DELETE",
-    "GET",
-    "OPTIONS",
-    "PATCH",
-    "POST",
-    "PUT",
-]
 
 CORS_ALLOW_HEADERS = [
     "content-type",
@@ -103,9 +90,13 @@ CORS_EXPOSE_HEADERS = ["Content-Type"]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://sujanayata.github.io",
+    "https://fullstackprojectnotesapp6.onrender.com",
 ]
 
-
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_SAMESITE = "None"
 
 X_FRAME_OPTIONS = "ALLOWALL"
 
@@ -143,6 +134,7 @@ DATABASES = {
         conn_max_age=600,
         ssl_require=True,
     )
+    
 }
 
 # --------------------------------------------------
