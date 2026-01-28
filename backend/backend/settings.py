@@ -74,7 +74,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_ALL_ORIGINS = False
 CORS_ALLOW_CREDENTIALS = True
 
 CORS_ALLOW_HEADERS = [
@@ -89,7 +89,7 @@ CORS_ALLOW_HEADERS = [
 CORS_EXPOSE_HEADERS = ["Content-Type"]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://yatasujana.github.io",
+    "https://sujanayata.github.io",
     "https://fullstackprojectnotesapp6.onrender.com",
 ]
 
