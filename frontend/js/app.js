@@ -26,9 +26,9 @@ document.addEventListener("DOMContentLoaded", () => {
     "https://fullstackprojectnotesapp6.onrender.com/api/auth/signup/";
 
   /* ===============================
-     HELPER: FETCH WITH TIMEOUT ✅
+     HELPER: FETCH WITH TIMEOUT ✅ (60 sec)
   ================================ */
-  async function fetchWithTimeout(url, options = {}, timeout = 25000) {
+  async function fetchWithTimeout(url, options = {}, timeout = 60000) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
 
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   /* ===============================
-     LOGIN / SIGNUP (WITH LOADER + TIMEOUT)
+     LOGIN / SIGNUP ✅ (Timeout 60s + Auto Retry)
   ================================ */
   authBtn.onclick = async () => {
     const username = document.getElementById("username").value.trim();
@@ -103,11 +103,15 @@ document.addEventListener("DOMContentLoaded", () => {
       authBtn.disabled = true;
       authBtn.innerText = "Please wait...";
 
-      const res = await fetchWithTimeout(isLogin ? LOGIN_API : SIGNUP_API, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
-      });
+      const res = await fetchWithTimeout(
+        isLogin ? LOGIN_API : SIGNUP_API,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password }),
+        },
+        60000
+      );
 
       const data = await res.json();
 
@@ -116,6 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Signup success
       if (!isLogin) {
         authMsg.innerText = "✅ Signup successful. Please login.";
         isLogin = true;
@@ -124,6 +129,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      // Login success
       sessionStorage.setItem("loggedIn", "true");
       sessionStorage.setItem("username", username);
 
@@ -134,8 +140,8 @@ document.addEventListener("DOMContentLoaded", () => {
       getNotes();
     } catch (err) {
       if (err.name === "AbortError") {
-        authMsg.innerText =
-          "⏳ Server is waking up... wait 20s and try again.";
+        authMsg.innerText = "⏳ Server waking up... retrying in 8 sec";
+        setTimeout(() => authBtn.click(), 8000); // ✅ auto retry
       } else {
         authMsg.innerText = "❌ Network/CORS issue. Please try again.";
       }
@@ -159,14 +165,14 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ===============================
-     FETCH NOTES
+     FETCH NOTES ✅ (60 sec timeout)
   ================================ */
   async function getNotes() {
     try {
       notesContainer.innerHTML =
         "<p style='text-align:center;'>⏳ Loading notes...</p>";
 
-      const res = await fetchWithTimeout(NOTES_API, {}, 25000);
+      const res = await fetchWithTimeout(NOTES_API, {}, 60000);
       if (!res.ok) throw new Error("Notes fetch failed");
 
       ALL_NOTES = await res.json();
@@ -178,7 +184,25 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ===============================
-     DISPLAY NOTES (PDF + IMAGE + DOCX)
+     LAZY LOAD PDF PREVIEW ✅
+  ================================ */
+  function lazyLoadPdf(url, elementId, badgeEl, previewEl) {
+    const observer = new IntersectionObserver(
+      async (entries, obs) => {
+        if (!entries[0].isIntersecting) return;
+
+        await renderPdfPreview(url, elementId);
+        previewEl.prepend(badgeEl); // pdf render clears html so add badge again
+        obs.disconnect();
+      },
+      { threshold: 0.25 }
+    );
+
+    observer.observe(previewEl);
+  }
+
+  /* ===============================
+     DISPLAY NOTES ✅
   ================================ */
   function displayNotes(notes) {
     notesContainer.innerHTML = "";
@@ -201,7 +225,6 @@ document.addEventListener("DOMContentLoaded", () => {
         </div>
       `;
 
-      // ✅ View button (open)
       card.querySelector(".view-btn").onclick = () =>
         window.open(note.file, "_blank");
 
@@ -209,15 +232,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const badge = card.querySelector(".file-badge");
       const fileUrl = note.file.toLowerCase();
 
-      // ✅ PDF
+      // ✅ PDF (Lazy Load)
       if (fileUrl.endsWith(".pdf")) {
         badge.textContent = "PDF";
         badge.className = "file-badge pdf-badge";
 
-        renderPdfPreview(note.file, `pdf-${note.id}`).then(() => {
-          preview.prepend(badge);
-        });
+        lazyLoadPdf(note.file, `pdf-${note.id}`, badge, preview);
       }
+
       // ✅ IMAGE
       else if (
         fileUrl.endsWith(".png") ||
@@ -226,9 +248,10 @@ document.addEventListener("DOMContentLoaded", () => {
       ) {
         preview.innerHTML = `
           <span class="file-badge image-badge">IMAGE</span>
-          <img src="${note.file}" alt="Note Image" class="image-preview" />
+          <img src="${note.file}" alt="Note Image" class="image-preview" loading="lazy" />
         `;
       }
+
       // ✅ DOCX
       else if (fileUrl.endsWith(".docx")) {
         preview.innerHTML = `
@@ -236,6 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <div class="docx-preview">📄 Word Document</div>
         `;
       }
+
       // ✅ OTHER
       else {
         preview.innerHTML = `
@@ -328,7 +352,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ===============================
-     SEARCH (ONE LISTENER)
+     SEARCH
   ================================ */
   if (searchInput) {
     searchInput.addEventListener("input", () => {
