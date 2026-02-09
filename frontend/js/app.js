@@ -19,18 +19,18 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ===============================
      BACKEND API
   ================================ */
-  // const NOTES_API = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
-  // const LOGIN_API =
-  //   "https://fullstackprojectnotesapp6.onrender.com/api/auth/login/";
-  // const SIGNUP_API =
-  //   "https://fullstackprojectnotesapp6.onrender.com/api/auth/signup/";
-
-
-  const NOTES_API = "http://127.0.0.1:8000/api/notes/";
+  const NOTES_API = " https://fullstack-notes-app-1fxz.onrender.com/api/notes/";
   const LOGIN_API =
-    "http://127.0.0.1:8000/api/auth/login/";
+    " https://fullstack-notes-app-1fxz.onrender.com/api/auth/login/";
   const SIGNUP_API =
-    "http://127.0.0.1:8000/api/auth/signup/";
+    " https://fullstack-notes-app-1fxz.onrender.com/api/auth/signup/";
+
+
+  // const NOTES_API = "http://127.0.0.1:8000/api/notes/";
+  // const LOGIN_API =
+  //   "http://127.0.0.1:8000/api/auth/login/";
+  // const SIGNUP_API =
+  //   "http://127.0.0.1:8000/api/auth/signup/";
 
   /* ===============================
      HELPER: FETCH WITH TIMEOUT ✅ (60 sec)

@@ -85,6 +85,7 @@ CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
     "http://127.0.0.1:5500",
     "http://localhost:5500",
+    " https://fullstack-notes-app-1fxz.onrender.com"
 ]
 
 CSRF_COOKIE_SECURE = False
