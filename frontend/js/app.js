@@ -10,20 +10,27 @@ document.addEventListener("DOMContentLoaded", () => {
   /* ===============================
      SUPABASE CONFIG
   ================================ */
-  const SUPABASE_URL = "https://blqmxvzvqrysvnzlygzh.supabase.co";
+  const SUPABASE_URL = "https://bsuctodcmhijpdfnobqf.supabase.co";
   const SUPABASE_ANON_KEY =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJscW14dnp2cXJ5c3Zuemx5Z3poIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwMjk1MjcsImV4cCI6MjA4MzYwNTUyN30.NYnl0WXWfF4BCs1FSN4hMOdTvl6Ef8fRAKx7STKixIw";
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJzdWN0b2RjbWhpanBkZm5vYnFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA2NDUwNjgsImV4cCI6MjA4NjIyMTA2OH0.iXI-LZ6a3KfpLT2LF5z859cNDb5PK89F_lrfNpc0wDo";
 
   const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ===============================
      BACKEND API
   ================================ */
-  const NOTES_API = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
+  // const NOTES_API = "https://fullstackprojectnotesapp6.onrender.com/api/notes/";
+  // const LOGIN_API =
+  //   "https://fullstackprojectnotesapp6.onrender.com/api/auth/login/";
+  // const SIGNUP_API =
+  //   "https://fullstackprojectnotesapp6.onrender.com/api/auth/signup/";
+
+
+  const NOTES_API = "http://127.0.0.1:8000/api/notes/";
   const LOGIN_API =
-    "https://fullstackprojectnotesapp6.onrender.com/api/auth/login/";
+    "http://127.0.0.1:8000/api/auth/login/";
   const SIGNUP_API =
-    "https://fullstackprojectnotesapp6.onrender.com/api/auth/signup/";
+    "http://127.0.0.1:8000/api/auth/signup/";
 
   /* ===============================
      HELPER: FETCH WITH TIMEOUT ✅ (60 sec)
@@ -156,7 +163,7 @@ document.addEventListener("DOMContentLoaded", () => {
      ADMIN CHECK
   ================================ */
   function checkAdmin() {
-    const adminUsers = ["supraja", "admin"];
+    const adminUsers = ["user", "admin"];
     const user = sessionStorage.getItem("username");
 
     if (!adminUsers.includes(user) && uploadSection) {
@@ -345,9 +352,11 @@ document.addEventListener("DOMContentLoaded", () => {
         uploadMessage.innerText = "✅ Uploaded";
         uploadForm.reset();
         getNotes();
-      } catch {
-        uploadMessage.innerText = "❌ Upload failed";
-      }
+      } catch (err) {
+  console.error("UPLOAD ERROR 👉", err);
+  uploadMessage.innerText = err.message || "❌ Upload failed";
+}
+
     };
   }
 

@@ -33,6 +33,8 @@ ALLOWED_HOSTS = ["*"]
 # --------------------------------------------------
 
 INSTALLED_APPS = [
+    "corsheaders",
+    "rest_framework",
     "django.contrib.admin",
     "django.contrib.auth",
     "django.contrib.contenttypes",
@@ -41,8 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
 
     # Third‑party
-    "rest_framework",
-    "corsheaders",
+    
 
     # Local
     "notes",
@@ -69,36 +70,26 @@ MIDDLEWARE = [
 # --------------------------------------------------
 # CORS / CSRF
 # --------------------------------------------------
-CORS_ALLOWED_ORIGINS = [
-    "https://sujanayata.github.io",
-]
 
 
-CORS_ALLOW_ALL_ORIGINS = False
+
+# --------------------------------------------------
+# CORS / CSRF (DEV MODE)
+# --------------------------------------------------
+
+CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
 
-CORS_ALLOW_HEADERS = [
-    "content-type",
-    "authorization",
-    "x-csrftoken",
-    "accept",
-    "origin",
-    "user-agent",
-]
-
-CORS_EXPOSE_HEADERS = ["Content-Type"]
-
 CSRF_TRUSTED_ORIGINS = [
-    "https://sujanayata.github.io",
-    "https://fullstackprojectnotesapp6.onrender.com",
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
 ]
 
-CSRF_COOKIE_SECURE = True
-CSRF_COOKIE_SAMESITE = "None"
-SESSION_COOKIE_SECURE = True
-SESSION_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
 
-X_FRAME_OPTIONS = "ALLOWALL"
 
 # --------------------------------------------------
 # URLS / TEMPLATES
